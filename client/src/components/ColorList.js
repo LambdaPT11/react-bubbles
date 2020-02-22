@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import axiosWithAuth from './utilis/axiosWithAuth';
+//import EditForm from "./editColorForm";
 
 const initialColor = {
   color: "",
@@ -23,16 +24,35 @@ const ColorList = ({ colors, updateColors }) => {
     // where is is saved right now? - updateColors
     axiosWithAuth()
       .put(`colors/${colorToEdit.id}`, colorToEdit)
-      .then(res => {//filter the id from colors})
+      .then(res => {
+        //console.log(res)
+        const editted = colors.map(color => {
+          if (color.id === res.data.id){
+            return {
+              ...color, 
+              color: res.data.color,
+              code: res.data.code
+            }
+          } else {
+            return color;
+          }
+        })
+        updateColors(editted);
+        setEditing(false)
+      })
+      .catch(err => {console.error('color-put', err)})
   };
 
   const deleteColor = color => {
     // make a delete request to delete this color
     axiosWithAuth()
-      .delete(`/colors/${colors.id}`)
+      .delete(`/colors/${color.id}`)
       .then(res => {
-        updateColors(//filter the id)
+        //console.log(res)
+        const newColors = colors.filter(color => color.id !== res.data);
+        updateColors(newColors);
       })
+      .catch(err => { console.error('color-delete', err); })
   };
 
   return (
@@ -59,6 +79,7 @@ const ColorList = ({ colors, updateColors }) => {
         ))}
       </ul>
       {editing && (
+        //<EditForm saveEdit={saveEdit} colorToEdit={colorToEdit} setColorToEdit={setColorToEdit} setEditing={setEditing} />
         <form onSubmit={saveEdit}>
           <legend>edit color</legend>
           <label>
